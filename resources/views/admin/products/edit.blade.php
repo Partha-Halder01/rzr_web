@@ -50,6 +50,46 @@
                 </div>
 
                 <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Key Features</label>
+                    <p class="text-xs text-gray-500 mb-2">Add product features (one per line)</p>
+                    <div id="features-container" class="space-y-2">
+                        @php $existingFeatures = old('features', $product->features ?? []); @endphp
+                        @if($existingFeatures && count($existingFeatures) > 0)
+                            @foreach($existingFeatures as $index => $feature)
+                            <div class="flex gap-2">
+                                <input type="text" name="features[]" value="{{ $feature }}" class="admin-input flex-1" placeholder="e.g., Premium quality formulation">
+                                @if($index === 0)
+                                <button type="button" onclick="addFeature()" class="btn-admin btn-admin-secondary px-3">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                                    </svg>
+                                </button>
+                                @else
+                                <button type="button" onclick="removeFeature(this)" class="btn-admin btn-admin-danger px-3">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                    </svg>
+                                </button>
+                                @endif
+                            </div>
+                            @endforeach
+                        @else
+                            <div class="flex gap-2">
+                                <input type="text" name="features[]" class="admin-input flex-1" placeholder="e.g., Premium quality formulation">
+                                <button type="button" onclick="addFeature()" class="btn-admin btn-admin-secondary px-3">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                                    </svg>
+                                </button>
+                            </div>
+                        @endif
+                    </div>
+                    @error('features')
+                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Product Image</label>
                     @if($product->image)
                     <div class="mb-3 p-3 bg-gray-50 rounded-lg flex items-center gap-3">
@@ -89,6 +129,25 @@
         function updateFileName(input) {
             const fileName = input.files[0]?.name || 'PNG, JPG up to 2MB';
             document.getElementById('file-name').textContent = fileName;
+        }
+
+        function addFeature() {
+            const container = document.getElementById('features-container');
+            const newRow = document.createElement('div');
+            newRow.className = 'flex gap-2';
+            newRow.innerHTML = `
+                <input type="text" name="features[]" class="admin-input flex-1" placeholder="e.g., Superior engine protection">
+                <button type="button" onclick="removeFeature(this)" class="btn-admin btn-admin-danger px-3">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            `;
+            container.appendChild(newRow);
+        }
+
+        function removeFeature(button) {
+            button.parentElement.remove();
         }
     </script>
 </x-layouts.admin>

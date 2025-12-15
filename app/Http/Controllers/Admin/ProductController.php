@@ -40,6 +40,8 @@ class ProductController extends Controller
             'category_id' => 'required|exists:categories,id',
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
+            'features' => 'nullable|array',
+            'features.*' => 'nullable|string|max:255',
             'specifications' => 'nullable|string|max:255',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
             'is_active' => 'boolean',
@@ -47,6 +49,11 @@ class ProductController extends Controller
 
         $validated['slug'] = Str::slug($validated['name']) . '-' . time();
         $validated['is_active'] = $request->has('is_active');
+        
+        // Filter out empty features
+        if (isset($validated['features'])) {
+            $validated['features'] = array_values(array_filter($validated['features']));
+        }
 
         if ($request->hasFile('image')) {
             $validated['image'] = $request->file('image')->store('products', 'public');
@@ -78,12 +85,19 @@ class ProductController extends Controller
             'category_id' => 'required|exists:categories,id',
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
+            'features' => 'nullable|array',
+            'features.*' => 'nullable|string|max:255',
             'specifications' => 'nullable|string|max:255',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
             'is_active' => 'boolean',
         ]);
 
         $validated['is_active'] = $request->has('is_active');
+        
+        // Filter out empty features
+        if (isset($validated['features'])) {
+            $validated['features'] = array_values(array_filter($validated['features']));
+        }
 
         if ($request->hasFile('image')) {
             // Delete old image

@@ -119,17 +119,95 @@
                     </ul>
                 </div>
                 
-                <div class="bg-white rounded-2xl p-8 shadow-lg">
-                    <h3 class="text-2xl font-bold text-gray-900 mb-4">Ready to Partner?</h3>
+                <div class="bg-white rounded-2xl p-8 shadow-lg" id="apply-form">
+                    <h3 class="text-2xl font-bold text-gray-900 mb-4">Apply Now</h3>
                     <p class="text-gray-600 mb-6">
-                        Fill out our contact form and our team will get in touch with you to discuss partnership opportunities.
+                        Fill out the form below and our team will contact you shortly.
                     </p>
-                    <a href="{{ route('contact') }}" class="btn-primary w-full justify-center">
-                        Apply Now
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/>
-                        </svg>
-                    </a>
+                    
+                    @if(session('success'))
+                    <div class="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg mb-6">
+                        {{ session('success') }}
+                    </div>
+                    @endif
+
+                    @if($errors->any())
+                    <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6">
+                        <ul class="list-disc list-inside text-sm">
+                            @foreach($errors->all() as $error)
+                                <li>{{ $error }}</li>
+                            @endforeach
+                        </ul>
+                    </div>
+                    @endif
+
+                    <form action="{{ route('distributor.store') }}" method="POST" class="space-y-4">
+                        @csrf
+                        <div class="grid sm:grid-cols-2 gap-4">
+                            <div>
+                                <label for="name" class="block text-sm font-medium text-gray-700 mb-1">Full Name *</label>
+                                <input type="text" id="name" name="name" value="{{ old('name') }}" required 
+                                    class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent" 
+                                    placeholder="John Doe">
+                            </div>
+                            <div>
+                                <label for="phone" class="block text-sm font-medium text-gray-700 mb-1">Phone Number *</label>
+                                <input type="tel" id="phone" name="phone" value="{{ old('phone') }}" required 
+                                    class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent" 
+                                    placeholder="+91 98765 43210">
+                            </div>
+                        </div>
+                        <div>
+                            <label for="email" class="block text-sm font-medium text-gray-700 mb-1">Email Address *</label>
+                            <input type="email" id="email" name="email" value="{{ old('email') }}" required 
+                                class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent" 
+                                placeholder="john@company.com">
+                        </div>
+                        <div>
+                            <label for="company_name" class="block text-sm font-medium text-gray-700 mb-1">Company/Business Name *</label>
+                            <input type="text" id="company_name" name="company_name" value="{{ old('company_name') }}" required 
+                                class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent" 
+                                placeholder="ABC Trading Co.">
+                        </div>
+                        <div class="grid sm:grid-cols-2 gap-4">
+                            <div>
+                                <label for="city" class="block text-sm font-medium text-gray-700 mb-1">City *</label>
+                                <input type="text" id="city" name="city" value="{{ old('city') }}" required 
+                                    class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent" 
+                                    placeholder="Mumbai">
+                            </div>
+                            <div>
+                                <label for="state" class="block text-sm font-medium text-gray-700 mb-1">State *</label>
+                                <input type="text" id="state" name="state" value="{{ old('state') }}" required 
+                                    class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent" 
+                                    placeholder="Maharashtra">
+                            </div>
+                        </div>
+                        <div>
+                            <label for="experience" class="block text-sm font-medium text-gray-700 mb-1">Years of Industry Experience</label>
+                            <select id="experience" name="experience" 
+                                class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent">
+                                <option value="">Select experience</option>
+                                <option value="Less than 1 year" {{ old('experience') == 'Less than 1 year' ? 'selected' : '' }}>Less than 1 year</option>
+                                <option value="1-3 years" {{ old('experience') == '1-3 years' ? 'selected' : '' }}>1-3 years</option>
+                                <option value="3-5 years" {{ old('experience') == '3-5 years' ? 'selected' : '' }}>3-5 years</option>
+                                <option value="5-10 years" {{ old('experience') == '5-10 years' ? 'selected' : '' }}>5-10 years</option>
+                                <option value="10+ years" {{ old('experience') == '10+ years' ? 'selected' : '' }}>10+ years</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="message" class="block text-sm font-medium text-gray-700 mb-1">Additional Information</label>
+                            <textarea id="message" name="message" rows="3" 
+                                class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent resize-none" 
+                                placeholder="Tell us about your business...">{{ old('message') }}</textarea>
+                        </div>
+                        <button type="submit" class="btn-primary w-full justify-center">
+                            Submit Application
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/>
+                            </svg>
+                        </button>
+                    </form>
                 </div>
             </div>
         </div>

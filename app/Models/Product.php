@@ -12,6 +12,7 @@ class Product extends Model
         'name',
         'slug',
         'description',
+        'features',
         'image',
         'specifications',
         'is_active',
@@ -20,6 +21,7 @@ class Product extends Model
     protected $casts = [
         'is_active' => 'boolean',
         'category_id' => 'integer',
+        'features' => 'array',
     ];
 
     public function category(): BelongsTo
