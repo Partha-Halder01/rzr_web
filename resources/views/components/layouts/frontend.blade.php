@@ -43,20 +43,7 @@
             <div class="flex justify-between items-center h-20">
                 <!-- Logo -->
                 <a href="{{ route('home') }}" class="flex items-center space-x-3 group">
-                    <div class="relative">
-                        <div class="w-11 h-11 bg-gradient-to-br from-orange-500 to-red-600 rounded-full flex items-center justify-center transition-transform group-hover:scale-110 group-hover:rotate-12">
-                            <svg class="w-6 h-6 text-white" viewBox="0 0 24 24" fill="currentColor">
-                                <path d="M12 2C12 2 8 6 8 10c0 2.21 1.79 4 4 4s4-1.79 4-4c0-4-4-8-4-8zm0 10c-1.1 0-2-.9-2-2 0-1.5 2-4 2-4s2 2.5 2 4c0 1.1-.9 2-2 2z"/>
-                            </svg>
-                        </div>
-                        <div class="absolute inset-0 bg-orange-500/20 blur-xl rounded-full group-hover:bg-orange-500/40 transition-all"></div>
-                    </div>
-                    <div>
-                        <span class="text-2xl font-bold">
-                            <span class="text-white">RZR</span>
-                        </span>
-                        <span class="block text-xs text-gray-400 uppercase tracking-wider">Premium Lubricants</span>
-                    </div>
+                    <img src="{{ asset('images/rzr-logo.jpg') }}" alt="RZR Premium Lubricants" class="h-12 md:h-14 w-auto rounded-lg transition-transform group-hover:scale-105">
                 </a>
 
                 <!-- Desktop Navigation -->
@@ -88,9 +75,26 @@
             </div>
         </div>
 
-        <!-- Mobile Menu -->
-        <div id="mobile-menu" class="hidden lg:hidden bg-gradient-to-b from-gray-900 via-gray-900 to-gray-950 border-t border-gray-800/50">
-            <div class="px-4 py-6 space-y-1">
+        <!-- Mobile Menu - Full Screen Overlay -->
+        <div id="mobile-menu" class="hidden lg:hidden fixed inset-0 z-[100]" style="background-color: #111827;">
+            <!-- Mobile Menu Header -->
+            <div class="flex items-center justify-between px-4 h-16 border-b border-gray-800" style="background-color: #111827;">
+                <a href="{{ route('home') }}" class="flex items-center space-x-3">
+                    <img src="{{ asset('images/rzr-logo.jpg') }}" alt="RZR Premium Lubricants" class="h-10 w-auto rounded-lg">
+                </a>
+                <div class="flex items-center gap-2">
+                    <a href="{{ route('contact') }}#contact-form" class="bg-gradient-to-r from-orange-500 to-red-600 text-white px-4 py-2 rounded-lg font-semibold text-sm">
+                        Contact
+                    </a>
+                    <button id="mobile-menu-close" class="text-white p-2 hover:bg-white/10 rounded-lg transition-colors">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="px-4 py-4 space-y-1 overflow-y-auto" style="max-height: calc(100vh - 64px); background-color: #111827;">
                 <!-- Navigation Links with Icons -->
                 <a href="{{ route('home') }}" class="flex items-center gap-4 px-4 py-3.5 text-white hover:bg-gradient-to-r hover:from-orange-500/10 hover:to-transparent rounded-xl transition-all duration-300 group {{ request()->routeIs('home') ? 'bg-orange-500/10 text-orange-400' : '' }}">
                     <div class="w-10 h-10 rounded-lg bg-gray-800/50 group-hover:bg-orange-500/20 flex items-center justify-center transition-colors">
@@ -183,15 +187,7 @@
                 <!-- Company Info - Full width on mobile -->
                 <div class="col-span-2 md:col-span-2">
                     <a href="{{ route('home') }}" class="flex items-center space-x-3 mb-4 group">
-                        <div class="w-10 h-10 bg-gradient-to-br from-orange-500 to-red-600 rounded-full flex items-center justify-center">
-                            <svg class="w-6 h-6 text-white" viewBox="0 0 24 24" fill="currentColor">
-                                <path d="M12 2C12 2 8 6 8 10c0 2.21 1.79 4 4 4s4-1.79 4-4c0-4-4-8-4-8zm0 10c-1.1 0-2-.9-2-2 0-1.5 2-4 2-4s2 2.5 2 4c0 1.1-.9 2-2 2z"/>
-                            </svg>
-                        </div>
-                        <div>
-                            <span class="text-xl font-bold text-white">RZR</span>
-                            <span class="block text-xs text-gray-500 uppercase tracking-wider">Premium Lubricants</span>
-                        </div>
+                        <img src="{{ asset('images/rzr-logo.jpg') }}" alt="RZR Premium Lubricants" class="h-12 w-auto rounded-lg">
                     </a>
                     <p class="text-gray-400 text-sm leading-relaxed mb-4 max-w-sm">
                         India's trusted lubricant brand since 1985. Delivering superior quality engine oils and lubricants.
@@ -253,15 +249,27 @@
     <script>
         // Mobile menu toggle
         const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+        const mobileMenuClose = document.getElementById('mobile-menu-close');
         const mobileMenu = document.getElementById('mobile-menu');
         const menuIcon = document.getElementById('menu-icon');
         const closeIcon = document.getElementById('close-icon');
         
-        mobileMenuBtn?.addEventListener('click', () => {
-            mobileMenu.classList.toggle('hidden');
-            menuIcon.classList.toggle('hidden');
-            closeIcon.classList.toggle('hidden');
-        });
+        function openMobileMenu() {
+            mobileMenu.classList.remove('hidden');
+            menuIcon?.classList.add('hidden');
+            closeIcon?.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        }
+        
+        function closeMobileMenu() {
+            mobileMenu.classList.add('hidden');
+            menuIcon?.classList.remove('hidden');
+            closeIcon?.classList.add('hidden');
+            document.body.style.overflow = '';
+        }
+        
+        mobileMenuBtn?.addEventListener('click', openMobileMenu);
+        mobileMenuClose?.addEventListener('click', closeMobileMenu);
 
         // Scroll effects
         const mainNav = document.getElementById('main-nav');

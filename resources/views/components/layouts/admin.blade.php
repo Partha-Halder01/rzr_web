@@ -190,11 +190,7 @@
             <!-- Logo -->
             <div class="p-4 lg:p-6 border-b border-gray-800 flex items-center justify-between">
                 <a href="{{ route('admin.dashboard') }}" class="flex items-center gap-3">
-                    <div class="w-10 h-10 bg-red-600 rounded-lg flex items-center justify-center flex-shrink-0">
-                        <svg class="w-6 h-6 text-white" viewBox="0 0 24 24" fill="currentColor">
-                            <path d="M12 2C12 2 8 6 8 10c0 2.21 1.79 4 4 4s4-1.79 4-4c0-4-4-8-4-8zm0 10c-1.1 0-2-.9-2-2 0-1.5 2-4 2-4s2 2.5 2 4c0 1.1-.9 2-2 2z"/>
-                        </svg>
-                    </div>
+                    <img src="{{ asset('images/rzr-logo.jpg') }}" alt="RZR Admin" class="h-10 w-auto rounded-lg flex-shrink-0">
                     <div>
                         <span class="text-xl font-bold text-white">RZR</span>
                         <span class="block text-xs text-gray-500">Admin Panel</span>
