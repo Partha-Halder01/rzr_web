@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 60" width="200" height="60">
+  <circle cx="25" cy="30" r="20" fill="#002C5F"/>
+  <text x="15" y="38" font-family="Arial, sans-serif" font-size="20" font-weight="bold" fill="white" font-style="italic">H</text>
+  <text x="55" y="40" font-family="Arial, sans-serif" font-size="26" font-weight="bold" fill="#002C5F">HYUNDAI</text>
+</svg>

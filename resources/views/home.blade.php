@@ -402,20 +402,28 @@
                 </p>
             </div>
 
+            @php
+                $categories = \App\Models\Category::where('is_active', true)->orderBy('sort_order')->take(6)->get();
+                $allProducts = \App\Models\Product::where('is_active', true)->with('category')->get();
+            @endphp
+
             <!-- Filter Tabs -->
             <div class="scroll-fade-up mb-8 overflow-x-auto hide-scrollbar" style="transition-delay: 0.3s;">
                 <div class="flex gap-2 min-w-max justify-center pb-2">
-                    <span class="filter-tab active">All Products</span>
-                    @foreach(\App\Models\Category::where('is_active', true)->orderBy('sort_order')->take(6)->get() as $cat)
-                    <a href="{{ route('products.category', $cat) }}" class="filter-tab">{{ Str::limit($cat->name, 15) }}</a>
+                    <button type="button" class="filter-tab active" data-category="all" onclick="filterProducts('all', this)">All Products</button>
+                    @foreach($categories as $cat)
+                    <button type="button" class="filter-tab" data-category="{{ $cat->id }}" data-category-slug="{{ $cat->slug }}" onclick="filterProducts('{{ $cat->id }}', this)">{{ Str::limit($cat->name, 15) }}</button>
                     @endforeach
                 </div>
             </div>
 
             <!-- Products Grid -->
-            <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                @foreach(\App\Models\Product::where('is_active', true)->with('category')->take(8)->get() as $index => $product)
-                <a href="{{ route('products.show', [$product->category, $product]) }}" class="scroll-scale product-card group" style="transition-delay: {{ 0.05 * $index }}s;">
+            <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-6" id="products-grid">
+                @foreach($allProducts as $index => $product)
+                <a href="{{ route('products.show', [$product->category, $product]) }}" 
+                   class="scroll-scale product-card group product-item" 
+                   data-category="{{ $product->category_id }}"
+                   style="transition-delay: {{ 0.05 * ($index % 8) }}s;">
                     <div class="aspect-square bg-gradient-to-br from-gray-100 to-gray-200 rounded-xl mb-4 flex items-center justify-center overflow-hidden">
                         @if($product->image)
                         <img src="{{ asset('storage/' . $product->image) }}" alt="{{ $product->name }}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
@@ -435,15 +443,73 @@
             </div>
 
             <!-- View All Button -->
-            <div class="text-center mt-12 scroll-fade-up" style="transition-delay: 0.4s;">
-                <a href="{{ route('products.index') }}" class="btn-primary">
+            <div class="text-center mt-12 scroll-fade-up" style="transition-delay: 0.4s;" id="view-all-container">
+                <a href="{{ route('products.index') }}" class="btn-primary" id="view-all-btn">
                     <svg class="w-5 h-5 relative z-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
                     </svg>
-                    <span class="relative z-10">View All Products</span>
+                    <span class="relative z-10" id="view-all-text">View All Products</span>
                 </a>
             </div>
+
+            <!-- Category Routes for JavaScript -->
+            <script>
+                const categoryRoutes = {
+                    @foreach($categories as $cat)
+                    '{{ $cat->id }}': '{{ route('products.category', $cat) }}',
+                    @endforeach
+                };
+                const allProductsRoute = '{{ route('products.index') }}';
+
+                function filterProducts(categoryId, button) {
+                    // Update active tab
+                    document.querySelectorAll('.filter-tab').forEach(tab => tab.classList.remove('active'));
+                    button.classList.add('active');
+
+                    const products = document.querySelectorAll('.product-item');
+                    const viewAllBtn = document.getElementById('view-all-btn');
+                    const viewAllText = document.getElementById('view-all-text');
+                    
+                    let visibleCount = 0;
+                    let totalMatchingProducts = 0;
+
+                    products.forEach(product => {
+                        const productCategory = product.getAttribute('data-category');
+                        const matches = categoryId === 'all' || productCategory === categoryId;
+                        
+                        if (matches) {
+                            totalMatchingProducts++;
+                            if (visibleCount < 8) {
+                                product.style.display = '';
+                                visibleCount++;
+                            } else {
+                                product.style.display = 'none';
+                            }
+                        } else {
+                            product.style.display = 'none';
+                        }
+                    });
+
+                    // Update View All button
+                    if (categoryId === 'all') {
+                        viewAllBtn.href = allProductsRoute;
+                        viewAllText.textContent = 'View All Products';
+                        // Show button if more than 8 products
+                        viewAllBtn.parentElement.style.display = totalMatchingProducts > 8 ? '' : 'none';
+                    } else {
+                        viewAllBtn.href = categoryRoutes[categoryId] || allProductsRoute;
+                        viewAllText.textContent = 'View All in Category';
+                        // Show button if more than 8 products in category
+                        viewAllBtn.parentElement.style.display = totalMatchingProducts > 8 ? '' : 'none';
+                    }
+                }
+
+                // Initialize: show only first 8 products
+                document.addEventListener('DOMContentLoaded', function() {
+                    filterProducts('all', document.querySelector('.filter-tab.active'));
+                });
+            </script>
         </div>
     </section>
 
@@ -553,100 +619,136 @@
                 </h2>
             </div>
 
-            <!-- Testimonials Carousel -->
-            <div class="scroll-scale relative max-w-4xl mx-auto" id="testimonial-carousel" style="transition-delay: 0.2s;">
-                <div class="overflow-hidden">
-                    <div class="flex transition-transform duration-500 ease-in-out" id="testimonial-slides">
-                        @php
-                            $testimonials = [
-                                [
-                                    'name' => 'Rajesh Kumar',
-                                    'role' => 'Fleet Owner, Delhi',
-                                    'text' => 'We\'ve been using RZR for our entire fleet of 50+ trucks. The fuel efficiency improvement and extended engine life have significantly reduced our operational costs.',
-                                    'rating' => 5
-                                ],
-                                [
-                                    'name' => 'Suresh Patel',
-                                    'role' => 'Workshop Owner, Mumbai',
-                                    'text' => 'RZR oils are the best in the market. My customers always come back satisfied. The quality consistency is excellent and the prices are competitive.',
-                                    'rating' => 5
-                                ],
-                                [
-                                    'name' => 'Amit Singh',
-                                    'role' => 'Auto Parts Dealer, Kolkata',
-                                    'text' => 'Excellent product range and great support from the RZR team. Being a distributor has been a profitable venture for my business.',
-                                    'rating' => 5
-                                ],
-                            ];
-                        @endphp
-                        @foreach($testimonials as $testimonial)
-                        <div class="w-full flex-shrink-0 px-4">
-                            <div class="testimonial-card">
-                                <!-- Stars -->
-                                <div class="flex gap-1 mb-6">
-                                    @for($i = 0; $i < $testimonial['rating']; $i++)
-                                    <svg class="w-5 h-5 text-amber-400 fill-amber-400" fill="currentColor" viewBox="0 0 20 20">
-                                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
-                                    </svg>
-                                    @endfor
-                                </div>
+            <!-- Testimonials Grid -->
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
+                @php
+                    $testimonials = \App\Models\Testimonial::active()->ordered()->get();
+                    // Fallback to demo data if no testimonials exist
+                    if ($testimonials->isEmpty()) {
+                        $testimonials = collect([
+                            (object)[
+                                'name' => 'Rajesh Kumar',
+                                'role' => 'Fleet Owner, Delhi',
+                                'text' => 'We\'ve been using RZR for our entire fleet of 50+ trucks. The fuel efficiency improvement and extended engine life have significantly reduced our operational costs.',
+                                'rating' => 5,
+                                'avatar' => null
+                            ],
+                            (object)[
+                                'name' => 'Suresh Patel',
+                                'role' => 'Workshop Owner, Mumbai',
+                                'text' => 'RZR oils are the best in the market. My customers always come back satisfied. The quality consistency is excellent and the prices are competitive.',
+                                'rating' => 5,
+                                'avatar' => null
+                            ],
+                            (object)[
+                                'name' => 'Amit Singh',
+                                'role' => 'Auto Parts Dealer, Kolkata',
+                                'text' => 'Excellent product range and great support from the RZR team. Being a distributor has been a profitable venture for my business.',
+                                'rating' => 5,
+                                'avatar' => null
+                            ],
+                        ]);
+                    }
+                @endphp
+                @foreach($testimonials as $index => $testimonial)
+                <div class="scroll-scale testimonial-card" style="transition-delay: {{ 0.1 * $index }}s;">
+                    <!-- Stars -->
+                    <div class="flex gap-1 mb-4">
+                        @for($i = 0; $i < $testimonial->rating; $i++)
+                        <svg class="w-5 h-5 text-amber-400 fill-amber-400" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                        </svg>
+                        @endfor
+                    </div>
 
-                                <blockquote class="text-xl md:text-2xl text-gray-800 leading-relaxed mb-8 relative z-10">
-                                    "{{ $testimonial['text'] }}"
-                                </blockquote>
+                    <blockquote class="text-gray-700 leading-relaxed mb-6">
+                        "{{ $testimonial->text }}"
+                    </blockquote>
 
-                                <div class="flex items-center gap-4">
-                                    <div class="w-14 h-14 rounded-full bg-gradient-to-br from-orange-500 to-red-600 flex items-center justify-center text-white font-bold text-xl">
-                                        {{ substr($testimonial['name'], 0, 1) }}
-                                    </div>
-                                    <div>
-                                        <div class="font-bold text-gray-900 text-lg">{{ $testimonial['name'] }}</div>
-                                        <div class="text-gray-500">{{ $testimonial['role'] }}</div>
-                                    </div>
-                                </div>
-                            </div>
+                    <div class="flex items-center gap-4 mt-auto">
+                        <div class="w-12 h-12 rounded-full bg-gradient-to-br from-orange-500 to-red-600 flex items-center justify-center text-white font-bold text-lg overflow-hidden flex-shrink-0">
+                            @if($testimonial->avatar)
+                            <img src="{{ asset('storage/' . $testimonial->avatar) }}" alt="{{ $testimonial->name }}" class="w-full h-full object-cover">
+                            @else
+                            {{ substr($testimonial->name, 0, 1) }}
+                            @endif
                         </div>
-                        @endforeach
+                        <div>
+                            <div class="font-bold text-gray-900">{{ $testimonial->name }}</div>
+                            <div class="text-sm text-gray-500">{{ $testimonial->role }}</div>
+                        </div>
                     </div>
                 </div>
-
-                <!-- Carousel Controls -->
-                <div class="flex justify-center items-center gap-4 mt-8">
-                    <button onclick="prevTestimonial()" class="w-12 h-12 rounded-full border border-gray-300 flex items-center justify-center hover:bg-orange-500 hover:border-orange-500 hover:text-white transition-all">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
-                        </svg>
-                    </button>
-                    <div class="flex gap-2 items-center" id="testimonial-dots">
-                        @foreach($testimonials as $index => $t)
-                        <button onclick="goToTestimonial({{ $index }})" class="w-2.5 h-2.5 rounded-full transition-all {{ $index === 0 ? 'bg-orange-500 w-8' : 'bg-gray-300 hover:bg-gray-400' }}"></button>
-                        @endforeach
-                    </div>
-                    <button onclick="nextTestimonial()" class="w-12 h-12 rounded-full border border-gray-300 flex items-center justify-center hover:bg-orange-500 hover:border-orange-500 hover:text-white transition-all">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
-                        </svg>
-                    </button>
-                </div>
+                @endforeach
             </div>
+        </div>
 
             <!-- Trusted Brands Marquee -->
             <div class="mt-16 pt-12 border-t border-gray-200 overflow-hidden">
-                <p class="text-center text-gray-500 mb-8 text-sm font-medium uppercase tracking-wider">Trusted by leading automotive brands</p>
+                <div class="text-center mb-12 space-y-4">
+                    <span class="inline-block text-orange-500 font-semibold tracking-wider uppercase text-sm">
+                        Our Partners
+                    </span>
+                    <h2 class="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900">
+                        Trusted by Leading <span class="text-gradient-animate">Automotive Brands</span>
+                    </h2>
+                </div>
+
                 <div class="relative">
                     <!-- Fade edges -->
                     <div class="absolute left-0 top-0 bottom-0 w-20 bg-gradient-to-r from-white to-transparent z-10"></div>
                     <div class="absolute right-0 top-0 bottom-0 w-20 bg-gradient-to-l from-white to-transparent z-10"></div>
                     
-                    <div class="flex animate-marquee gap-16 items-center">
-                        @php
-                            $brands = ['Toyota', 'Honda', 'Maruti Suzuki', 'Tata Motors', 'Mahindra', 'Hyundai', 'Hero', 'Bajaj', 'TVS', 'Ashok Leyland', 'Toyota', 'Honda', 'Maruti Suzuki', 'Tata Motors', 'Mahindra', 'Hyundai'];
-                        @endphp
-                        @foreach($brands as $brand)
-                        <div class="text-2xl font-bold text-gray-300 whitespace-nowrap hover:text-orange-500 transition-colors cursor-default">
-                            {{ $brand }}
+                    <div class="flex animate-marquee gap-12 md:gap-20 items-center py-6">
+                        <div class="flex-shrink-0 opacity-70 hover:opacity-100 transition-all duration-300">
+                            <img src="{{ asset('images/brands/toyota.svg') }}" alt="Toyota" class="h-10 md:h-12 w-auto">
                         </div>
-                        @endforeach
+                        <div class="flex-shrink-0 opacity-70 hover:opacity-100 transition-all duration-300">
+                            <img src="{{ asset('images/brands/honda.svg') }}" alt="Honda" class="h-10 md:h-12 w-auto">
+                        </div>
+                        <div class="flex-shrink-0 opacity-70 hover:opacity-100 transition-all duration-300">
+                            <img src="{{ asset('images/brands/maruti-suzuki.svg') }}" alt="Maruti Suzuki" class="h-10 md:h-12 w-auto">
+                        </div>
+                        <div class="flex-shrink-0 opacity-70 hover:opacity-100 transition-all duration-300">
+                            <img src="{{ asset('images/brands/tata.svg') }}" alt="Tata Motors" class="h-10 md:h-12 w-auto">
+                        </div>
+                        <div class="flex-shrink-0 opacity-70 hover:opacity-100 transition-all duration-300">
+                            <img src="{{ asset('images/brands/mahindra.svg') }}" alt="Mahindra" class="h-10 md:h-12 w-auto">
+                        </div>
+                        <div class="flex-shrink-0 opacity-70 hover:opacity-100 transition-all duration-300">
+                            <img src="{{ asset('images/brands/hyundai.svg') }}" alt="Hyundai" class="h-10 md:h-12 w-auto">
+                        </div>
+                        <div class="flex-shrink-0 opacity-70 hover:opacity-100 transition-all duration-300">
+                            <img src="{{ asset('images/brands/hero.svg') }}" alt="Hero MotoCorp" class="h-10 md:h-12 w-auto">
+                        </div>
+                        <div class="flex-shrink-0 opacity-70 hover:opacity-100 transition-all duration-300">
+                            <img src="{{ asset('images/brands/bajaj.svg') }}" alt="Bajaj Auto" class="h-10 md:h-12 w-auto">
+                        </div>
+                        <div class="flex-shrink-0 opacity-70 hover:opacity-100 transition-all duration-300">
+                            <img src="{{ asset('images/brands/tvs.svg') }}" alt="TVS Motor" class="h-10 md:h-12 w-auto">
+                        </div>
+                        <div class="flex-shrink-0 opacity-70 hover:opacity-100 transition-all duration-300">
+                            <img src="{{ asset('images/brands/ashok-leyland.svg') }}" alt="Ashok Leyland" class="h-10 md:h-12 w-auto">
+                        </div>
+                        <!-- Duplicate for seamless loop -->
+                        <div class="flex-shrink-0 opacity-70 hover:opacity-100 transition-all duration-300">
+                            <img src="{{ asset('images/brands/toyota.svg') }}" alt="Toyota" class="h-10 md:h-12 w-auto">
+                        </div>
+                        <div class="flex-shrink-0 opacity-70 hover:opacity-100 transition-all duration-300">
+                            <img src="{{ asset('images/brands/honda.svg') }}" alt="Honda" class="h-10 md:h-12 w-auto">
+                        </div>
+                        <div class="flex-shrink-0 opacity-70 hover:opacity-100 transition-all duration-300">
+                            <img src="{{ asset('images/brands/maruti-suzuki.svg') }}" alt="Maruti Suzuki" class="h-10 md:h-12 w-auto">
+                        </div>
+                        <div class="flex-shrink-0 opacity-70 hover:opacity-100 transition-all duration-300">
+                            <img src="{{ asset('images/brands/tata.svg') }}" alt="Tata Motors" class="h-10 md:h-12 w-auto">
+                        </div>
+                        <div class="flex-shrink-0 opacity-70 hover:opacity-100 transition-all duration-300">
+                            <img src="{{ asset('images/brands/mahindra.svg') }}" alt="Mahindra" class="h-10 md:h-12 w-auto">
+                        </div>
+                        <div class="flex-shrink-0 opacity-70 hover:opacity-100 transition-all duration-300">
+                            <img src="{{ asset('images/brands/hyundai.svg') }}" alt="Hyundai" class="h-10 md:h-12 w-auto">
+                        </div>
                     </div>
                 </div>
             </div>
